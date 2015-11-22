@@ -1,13 +1,107 @@
 package com.allegromusicplayer;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.MergeCursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.ListView;
+
+import com.allegromusicplayer.com.allegromusicplayer.classes.Song;
+import com.allegromusicplayer.com.allegromusicplayer.classes.SongAdapter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private List<Song> songList;
+    private ListView songListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        songList = new ArrayList<Song>();
+        songListView = (ListView) findViewById(R.id.song_list);
+
+        populateSongList(songList);
+
+        // sort the song list in ascending order according to title
+        Collections.sort(songList, new Comparator<Song>() {
+            @Override
+            public int compare(Song a, Song b) {
+                return a.getTitle().compareTo(b.getTitle());
+            }
+        });
+
+        //Log.d("AMP - song", songList.toString());
+
+        // set the adapter for the list view to populate the items in it
+        SongAdapter songAdapter = new SongAdapter(songList,this);
+        songListView.setAdapter(songAdapter);
+
+    }
+
+    /**
+     * Retrieve the song info and put it in the song list
+     *
+     * @param songList The List in which the created song objects are to be put
+     */
+    public void populateSongList(List<Song> songList) {
+        ContentResolver musicResolver = getContentResolver();
+        Uri externalMusicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Uri internalMusicUri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI;
+
+        Cursor[] musicCursorArray = new Cursor[2];
+        musicCursorArray[0] = musicResolver.query(externalMusicUri,null,null,null,null);
+        musicCursorArray[1] = musicResolver.query(internalMusicUri,null,null,null,null);
+
+
+        MergeCursor musicCursor = new MergeCursor(musicCursorArray);
+
+        // iterate over the results in the Cursor
+        if (musicCursor != null && musicCursor.moveToFirst()) {
+
+            // only get audio files which are music
+            if (musicCursor.getInt(musicCursor.getColumnIndex(MediaStore.Audio.Media.IS_MUSIC)) != 0) {
+
+                // get the columns indexes of the media in the cursor
+                int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+                int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+                int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+                int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+
+                // add songs to the songList
+                do {
+                    long id = musicCursor.getLong(idColumn);
+                    String title = musicCursor.getString(titleColumn);
+                    String album = musicCursor.getString(albumColumn);
+                    String artist = musicCursor.getString(artistColumn);
+
+                    // ignore duplicates
+                    boolean songPresent = false;
+                    for (int i = 0; i < songList.size(); i++) {
+                        Song song = songList.get(i);
+                        if (song.getTitle().equals(title) && song.getAlbum().equals(album) && song.getArtist().equals(artist)){
+                            songPresent = true;
+                            break;
+                        }
+                    }
+                    if (!songPresent){
+                        songList.add(new Song(id,null,artist,title,album));
+                    }
+
+
+                }while (musicCursor.moveToNext());
+            }
+        }
     }
 }
