@@ -1,10 +1,14 @@
 package com.allegromusicplayer;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MergeCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +18,7 @@ import android.widget.ListView;
 import com.allegromusicplayer.com.allegromusicplayer.classes.Song;
 import com.allegromusicplayer.com.allegromusicplayer.classes.SongAdapter;
 
+import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -78,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
                 int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
                 int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+                int albumIDColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
 
                 // add songs to the songList
                 do {
@@ -85,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
                     String title = musicCursor.getString(titleColumn);
                     String album = musicCursor.getString(albumColumn);
                     String artist = musicCursor.getString(artistColumn);
+                    long albumID = musicCursor.getLong(albumIDColumn);
 
                     // ignore duplicates
                     boolean songPresent = false;
@@ -96,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     if (!songPresent){
-                        songList.add(new Song(id,null,artist,title,album));
+                        songList.add(new Song(id,title,artist,album,albumID));
                     }
 
 

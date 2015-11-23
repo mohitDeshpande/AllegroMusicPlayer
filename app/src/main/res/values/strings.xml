@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Allegro Music Player</string>
+    <string name="album_art">album art</string>
 </resources>

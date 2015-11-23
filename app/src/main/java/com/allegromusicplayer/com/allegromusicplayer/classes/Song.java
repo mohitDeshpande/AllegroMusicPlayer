@@ -1,5 +1,14 @@
 package com.allegromusicplayer.com.allegromusicplayer.classes;
 
+import android.content.ContentUris;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+import android.util.Log;
+
+import java.io.FileDescriptor;
+
 /**
  * Created by Mohit Deshpande on 11/22/15.
  */
@@ -8,7 +17,8 @@ public class Song {
     private String title;
     private String artist;
     private String album;
-    private String albumArt;
+    //private Bitmap albumArt;
+    private long albumID;
 
     @Override
     public String toString() {
@@ -19,12 +29,16 @@ public class Song {
                 '}';
     }
 
-    public Song(long id, String albumArt, String artist, String title, String album) {
+    public long getAlbumID() {
+        return albumID;
+    }
+
+    public Song(long id, String title, String artist, String album,long albumID) {
         this.id = id;
-        this.albumArt = albumArt;
-        this.artist = artist;
         this.title = title;
+        this.artist = artist;
         this.album = album;
+        this.albumID = albumID;
     }
 
     public long getId() {
@@ -41,9 +55,5 @@ public class Song {
 
     public String getAlbum() {
         return album;
-    }
-
-    public String getAlbumArt() {
-        return albumArt;
     }
 }
