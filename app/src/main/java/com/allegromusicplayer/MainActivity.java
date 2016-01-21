@@ -2,23 +2,25 @@ package com.allegromusicplayer;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.MergeCursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
 
-import com.allegromusicplayer.com.allegromusicplayer.classes.Song;
-import com.allegromusicplayer.com.allegromusicplayer.classes.SongAdapter;
+import com.allegromusicplayer.classes.Song;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
-import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,9 +51,49 @@ public class MainActivity extends AppCompatActivity {
 
         //Log.d("AMP - song", songList.toString());
 
+        // Configure image loader
+        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder().cacheOnDisk(true).bitmapConfig(Bitmap.Config.RGB_565).build();
+        ImageLoaderConfiguration configuration = new ImageLoaderConfiguration.Builder(this).defaultDisplayImageOptions(defaultOptions).build();
+        ImageLoader.getInstance().init(configuration);
+
+        // prevent lag while scrolling
+        boolean pauseOnScroll = false; // or true
+        boolean pauseOnFling = false; // or false
+        PauseOnScrollListener listener = new PauseOnScrollListener(ImageLoader.getInstance(), pauseOnScroll, pauseOnFling);
+        songListView.setOnScrollListener(listener);
+
         // set the adapter for the list view to populate the items in it
         SongAdapter songAdapter = new SongAdapter(songList,this);
         songListView.setAdapter(songAdapter);
+
+
+
+        /**/
+        Uri myUri = null;
+        MediaPlayer mediaPlayer = null;
+        try {
+            myUri = ContentUris.withAppendedId(
+                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songList.get(0).getId()); // initialize Uri here
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+            mediaPlayer.setDataSource(getApplicationContext(), myUri);
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            if (myUri == null) {
+                Log.e("AMP Null Pointer","uri is null");
+            } else {
+                Log.e("AMP Null Pointer","uri is NOT null");
+            }
+
+            e.printStackTrace();
+        } catch (Exception e) {
+            Log.e("Exception Stack Trace", e.toString());
+        }
+        mediaPlayer.start();
+        /**/
 
     }
 
@@ -76,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (musicCursor != null && musicCursor.moveToFirst()) {
 
             // only get audio files which are music
-            if (musicCursor.getInt(musicCursor.getColumnIndex(MediaStore.Audio.Media.IS_MUSIC)) != 0) {
+            if (musicCursor.getInt(musicCursor.getColumnIndex(MediaStore.Audio.Media.IS_MUSIC)) == 0) {
 
                 // get the columns indexes of the media in the cursor
                 int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);

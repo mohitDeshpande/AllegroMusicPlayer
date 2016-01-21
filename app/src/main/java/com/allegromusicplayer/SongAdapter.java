@@ -1,4 +1,4 @@
-package com.allegromusicplayer.com.allegromusicplayer.classes;
+package com.allegromusicplayer;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -6,18 +6,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-import android.text.Layout;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.allegromusicplayer.R;
+import com.allegromusicplayer.classes.Song;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 import java.io.FileDescriptor;
 import java.util.List;
@@ -33,11 +35,13 @@ public class SongAdapter extends BaseAdapter {
     private List<Song> songList;
     private LayoutInflater songInflater;
     Context context;
+    ImageLoader imageLoader;
 
     public SongAdapter(List<Song> songList, Context context) {
         this.songList = songList;
         this.context = context;
         songInflater = LayoutInflater.from(context);
+        imageLoader = ImageLoader.getInstance();
     }
 
     @Override
@@ -68,13 +72,14 @@ public class SongAdapter extends BaseAdapter {
         // get song using position
         Song currentSong = songList.get(i);
 
-        // get title and artist strings and set it
+        // get title, artist strings and album artwork and set it
         String title = currentSong.getTitle();
         String artist = currentSong.getArtist();
         long albumId = currentSong.getAlbumID();
+
         titleTextView.setText(title);
         artistTextView.setText(artist);
-        albumArtView.setImageBitmap(getAlbumArt(albumId,context));
+        imageLoader.displayImage(getAlbumArtUri(albumId,context).toString(), albumArtView);
 
         //set position as tag
         songListItemLayout.setTag(i);
@@ -105,5 +110,25 @@ public class SongAdapter extends BaseAdapter {
             Log.e("AMP stackTrace", e.toString());
         }
         return bm;
+    }
+
+    /**
+     * Gets album art work URI for the given album id
+     * @param album_id The id of the Album whose artwork to find
+     * @return A Uri of the album artwork bitmap
+     */
+    private Uri getAlbumArtUri(Long album_id, Context context) {
+        Uri uri = null;
+        try {
+            final Uri sArtworkUri = Uri
+                    .parse("content://media/external/audio/albumart");
+
+            uri = ContentUris.withAppendedId(sArtworkUri, album_id);
+
+
+        } catch (Exception e) {
+            Log.e("AMP stackTrace", e.toString());
+        }
+        return uri;
     }
 }

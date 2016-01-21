@@ -1,4 +1,4 @@
-package com.allegromusicplayer.com.allegromusicplayer.classes;
+package com.allegromusicplayer.classes;
 
 import android.content.ContentUris;
 import android.graphics.Bitmap;
