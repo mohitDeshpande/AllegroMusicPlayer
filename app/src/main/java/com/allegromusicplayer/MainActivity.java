@@ -1,13 +1,18 @@
 package com.allegromusicplayer;
 
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.MergeCursor;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,6 +20,7 @@ import android.util.Log;
 import android.widget.ListView;
 
 import com.allegromusicplayer.classes.Song;
+import com.allegromusicplayer.service.MusicPlaybackService;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
@@ -30,6 +36,42 @@ public class MainActivity extends AppCompatActivity {
 
     private List<Song> songList;
     private ListView songListView;
+    private MusicPlaybackService musicPlaybackService;
+    private Intent playMusicIntent;
+    private boolean isMusicPlaybackServiceBound = false;
+
+    /**
+     * Create a connection to the MusicPlaybackService
+     */
+    private ServiceConnection musicPlaybackServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicPlaybackService.MusicPlaybackServiceBinder binder = (MusicPlaybackService.MusicPlaybackServiceBinder)service;
+            musicPlaybackService = binder.getService();
+            musicPlaybackService.setSongList(songList);
+            isMusicPlaybackServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isMusicPlaybackServiceBound = false;
+        }
+    };
+
+    /**
+     * Dispatch onStart() to all fragments.  Ensure any created loaders are
+     * now started.
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (playMusicIntent == null) {
+            playMusicIntent = new Intent(this,MusicPlaybackService.class);
+            bindService(playMusicIntent, musicPlaybackServiceConnection, Context.BIND_AUTO_CREATE);
+            startService(playMusicIntent);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,30 +111,30 @@ public class MainActivity extends AppCompatActivity {
 
 
         /**/
-        Uri myUri = null;
-        MediaPlayer mediaPlayer = null;
-        try {
-            myUri = ContentUris.withAppendedId(
-                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songList.get(0).getId()); // initialize Uri here
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
-            mediaPlayer.setDataSource(getApplicationContext(), myUri);
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (NullPointerException e) {
-            if (myUri == null) {
-                Log.e("AMP Null Pointer","uri is null");
-            } else {
-                Log.e("AMP Null Pointer","uri is NOT null");
-            }
-
-            e.printStackTrace();
-        } catch (Exception e) {
-            Log.e("Exception Stack Trace", e.toString());
-        }
-        mediaPlayer.start();
+//        Uri myUri = null;
+//        MediaPlayer mediaPlayer = null;
+//        try {
+//            myUri = ContentUris.withAppendedId(
+//                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songList.get(0).getId()); // initialize Uri here
+//            mediaPlayer = new MediaPlayer();
+//            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//
+//            mediaPlayer.setDataSource(getApplicationContext(), myUri);
+//            mediaPlayer.prepare();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (NullPointerException e) {
+//            if (myUri == null) {
+//                Log.e("AMP Null Pointer","uri is null");
+//            } else {
+//                Log.e("AMP Null Pointer","uri is NOT null");
+//            }
+//
+//            e.printStackTrace();
+//        } catch (Exception e) {
+//            Log.e("Exception Stack Trace", e.toString());
+//        }
+//        mediaPlayer.start();
         /**/
 
     }

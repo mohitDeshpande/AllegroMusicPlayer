@@ -79,7 +79,10 @@ public class SongAdapter extends BaseAdapter {
 
         titleTextView.setText(title);
         artistTextView.setText(artist);
-        imageLoader.displayImage(getAlbumArtUri(albumId,context).toString(), albumArtView);
+        String albumArtUri = getAlbumArtUri(albumId,context).toString();
+        if(albumArtUri != null) {
+            imageLoader.displayImage(albumArtUri, albumArtView);
+        }
 
         //set position as tag
         songListItemLayout.setTag(i);
