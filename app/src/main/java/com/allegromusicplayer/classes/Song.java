@@ -19,6 +19,7 @@ public class Song {
     private String album;
     //private Bitmap albumArt;
     private long albumID;
+    private String path;
 
     @Override
     public String toString() {
@@ -26,6 +27,9 @@ public class Song {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", artist='" + artist + '\'' +
+                ", album='" + album + '\'' +
+                ", albumID=" + albumID +
+                ", path=" + path +
                 '}';
     }
 
@@ -33,12 +37,13 @@ public class Song {
         return albumID;
     }
 
-    public Song(long id, String title, String artist, String album,long albumID) {
+    public Song(long id, String title, String artist, String album, long albumID, String path) {
         this.id = id;
         this.title = title;
         this.artist = artist;
         this.album = album;
         this.albumID = albumID;
+        this.path = path;
     }
 
     public long getId() {
@@ -55,5 +60,9 @@ public class Song {
 
     public String getAlbum() {
         return album;
+    }
+
+    public String getPath() {
+        return path;
     }
 }

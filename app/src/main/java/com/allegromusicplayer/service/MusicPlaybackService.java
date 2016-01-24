@@ -1,17 +1,22 @@
 package com.allegromusicplayer.service;
 
 import android.app.Service;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.allegromusicplayer.classes.Song;
 
+import java.io.IOException;
 import java.util.List;
 
 public class MusicPlaybackService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener{
@@ -21,8 +26,14 @@ public class MusicPlaybackService extends Service implements MediaPlayer.OnPrepa
     private int currentSongIndex; //the index of the current song playing
     private IBinder musicBinder;
 
+    public void setCurrentSongIndex(int currentSongIndex) {
+        this.currentSongIndex = currentSongIndex;
+    }
+
+    private Context context;
+
     public MusicPlaybackService() {
-        musicBinder = new MusicPlaybackServiceBinder();
+
     }
 
     public void setSongList(List<Song> songList) {
@@ -43,9 +54,12 @@ public class MusicPlaybackService extends Service implements MediaPlayer.OnPrepa
         super.onCreate();
         currentSongIndex = 0;
 
+        musicBinder = new MusicPlaybackServiceBinder();
+        context = getApplicationContext();
+
         // initialize the music player
         player = new MediaPlayer();
-        player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        player.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
         player.setOnPreparedListener(this);
         player.setOnCompletionListener(this);
@@ -133,6 +147,25 @@ public class MusicPlaybackService extends Service implements MediaPlayer.OnPrepa
      */
     @Override
     public void onPrepared(MediaPlayer mp) {
+        try {
+            mp.start();
+        } catch (IllegalStateException e) {
+            Log.v("AMP","Unable to start media player", e);
+        }
+    }
 
+    public void playSong() {
+        player.reset();
+        Song songToPlay = songList.get(currentSongIndex);
+
+        try {
+            player.setDataSource(songToPlay.getPath());
+
+            player.prepareAsync();
+        } catch (IOException e) {
+            Log.v("AMP","unable to set datasource in media player", e);
+        } catch (IllegalStateException e) {
+            Log.v("AMP","Unable to prepare player Async", e);
+        }
     }
 }

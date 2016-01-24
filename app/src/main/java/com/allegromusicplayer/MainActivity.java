@@ -2,21 +2,18 @@ package com.allegromusicplayer;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
-import android.database.MergeCursor;
 import android.graphics.Bitmap;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ListView;
 
 import com.allegromusicplayer.classes.Song;
@@ -26,7 +23,6 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,6 +35,15 @@ public class MainActivity extends AppCompatActivity {
     private MusicPlaybackService musicPlaybackService;
     private Intent playMusicIntent;
     private boolean isMusicPlaybackServiceBound = false;
+
+    /**
+     *
+     * @param view
+     */
+    public void songPicked(View view) {
+        musicPlaybackService.setCurrentSongIndex(Integer.parseInt(view.getTag().toString()));
+        musicPlaybackService.playSong();
+    }
 
     /**
      * Create a connection to the MusicPlaybackService
@@ -108,35 +113,6 @@ public class MainActivity extends AppCompatActivity {
         SongAdapter songAdapter = new SongAdapter(songList,this);
         songListView.setAdapter(songAdapter);
 
-
-
-        /**/
-//        Uri myUri = null;
-//        MediaPlayer mediaPlayer = null;
-//        try {
-//            myUri = ContentUris.withAppendedId(
-//                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songList.get(0).getId()); // initialize Uri here
-//            mediaPlayer = new MediaPlayer();
-//            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//
-//            mediaPlayer.setDataSource(getApplicationContext(), myUri);
-//            mediaPlayer.prepare();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (NullPointerException e) {
-//            if (myUri == null) {
-//                Log.e("AMP Null Pointer","uri is null");
-//            } else {
-//                Log.e("AMP Null Pointer","uri is NOT null");
-//            }
-//
-//            e.printStackTrace();
-//        } catch (Exception e) {
-//            Log.e("Exception Stack Trace", e.toString());
-//        }
-//        mediaPlayer.start();
-        /**/
-
     }
 
     /**
@@ -147,20 +123,18 @@ public class MainActivity extends AppCompatActivity {
     public void populateSongList(List<Song> songList) {
         ContentResolver musicResolver = getContentResolver();
         Uri externalMusicUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Uri internalMusicUri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI;
+        //Uri internalMusicUri = MediaStore.Audio.Media.INTERNAL_CONTENT_URI;
+        String selectOnlyMusic = MediaStore.Audio.Media.IS_MUSIC + " != 0";
 
-        Cursor[] musicCursorArray = new Cursor[2];
-        musicCursorArray[0] = musicResolver.query(externalMusicUri,null,null,null,null);
-        musicCursorArray[1] = musicResolver.query(internalMusicUri,null,null,null,null);
+        //Cursor[] musicCursorArray = new Cursor[2];
+        Cursor musicCursor = musicResolver.query(externalMusicUri,null,selectOnlyMusic,null,null);
+        //musicCursorArray[1] = musicResolver.query(internalMusicUri,null,selectOnlyMusic,null,null);
 
 
-        MergeCursor musicCursor = new MergeCursor(musicCursorArray);
+        //MergeCursor musicCursor = new MergeCursor(musicCursorArray);
 
         // iterate over the results in the Cursor
         if (musicCursor != null && musicCursor.moveToFirst()) {
-
-            // only get audio files which are music
-            if (musicCursor.getInt(musicCursor.getColumnIndex(MediaStore.Audio.Media.IS_MUSIC)) == 0) {
 
                 // get the columns indexes of the media in the cursor
                 int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
@@ -168,31 +142,26 @@ public class MainActivity extends AppCompatActivity {
                 int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
                 int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
                 int albumIDColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
+                int dataColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+
 
                 // add songs to the songList
                 do {
+
                     long id = musicCursor.getLong(idColumn);
                     String title = musicCursor.getString(titleColumn);
                     String album = musicCursor.getString(albumColumn);
                     String artist = musicCursor.getString(artistColumn);
                     long albumID = musicCursor.getLong(albumIDColumn);
+                    String data = musicCursor.getString(dataColumn);
 
-                    // ignore duplicates
-                    boolean songPresent = false;
-                    for (int i = 0; i < songList.size(); i++) {
-                        Song song = songList.get(i);
-                        if (song.getTitle().equals(title) && song.getAlbum().equals(album) && song.getArtist().equals(artist)){
-                            songPresent = true;
-                            break;
-                        }
-                    }
-                    if (!songPresent){
-                        songList.add(new Song(id,title,artist,album,albumID));
+                    if (data != null){
+                        songList.add(new Song(id,title,artist,album,albumID, data));
                     }
 
 
                 }while (musicCursor.moveToNext());
-            }
+            Log.i("song count", String.valueOf(songList.size()));
         }
     }
 }
