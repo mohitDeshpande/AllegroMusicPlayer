@@ -1,4 +1,4 @@
-package com.allegromusicplayer;
+package com.allegromusicplayer.view;
 
 import android.content.ContentUris;
 import android.content.Context;
@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.allegromusicplayer.R;
 import com.allegromusicplayer.classes.Song;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -79,7 +80,7 @@ public class SongAdapter extends BaseAdapter {
 
         titleTextView.setText(title);
         artistTextView.setText(artist);
-        String albumArtUri = getAlbumArtUri(albumId,context).toString();
+        String albumArtUri = currentSong.getAlbumArtUri().toString();
         if(albumArtUri != null) {
             imageLoader.displayImage(albumArtUri, albumArtView);
         }
@@ -113,25 +114,5 @@ public class SongAdapter extends BaseAdapter {
             Log.e("AMP stackTrace", e.toString());
         }
         return bm;
-    }
-
-    /**
-     * Gets album art work URI for the given album id
-     * @param album_id The id of the Album whose artwork to find
-     * @return A Uri of the album artwork bitmap
-     */
-    private Uri getAlbumArtUri(Long album_id, Context context) {
-        Uri uri = null;
-        try {
-            final Uri sArtworkUri = Uri
-                    .parse("content://media/external/audio/albumart");
-
-            uri = ContentUris.withAppendedId(sArtworkUri, album_id);
-
-
-        } catch (Exception e) {
-            Log.e("AMP stackTrace", e.toString());
-        }
-        return uri;
     }
 }

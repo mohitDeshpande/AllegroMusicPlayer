@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".view.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
@@ -26,9 +26,15 @@
         </activity>
 
         <service
-            android:name="com.allegromusicplayer.service.MusicPlaybackService"
+            android:name=".service.MusicPlaybackService"
             android:enabled="true"
             android:exported="true" />
+
+        <activity
+            android:name=".view.MusicPlayerActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".view.MainActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

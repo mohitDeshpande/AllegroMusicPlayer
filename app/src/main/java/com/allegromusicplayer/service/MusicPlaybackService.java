@@ -17,9 +17,10 @@ import android.util.Log;
 import com.allegromusicplayer.classes.Song;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
-public class MusicPlaybackService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener{
+public class MusicPlaybackService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
     private MediaPlayer player;
     private List<Song> songList;

@@ -1,4 +1,4 @@
-package com.allegromusicplayer;
+package com.allegromusicplayer.view;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
+import com.allegromusicplayer.R;
 import com.allegromusicplayer.classes.Song;
 import com.allegromusicplayer.service.MusicPlaybackService;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -30,6 +31,9 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String EXTRA_SONG = "com.allegromusicplayer.classes.Song";
+    public static final String EXTRA_MUSIC_PLAYBACK_SERVICE = "com.allegromusicplayer.service.MusicPlaybackService";
+
     private List<Song> songList;
     private ListView songListView;
     private MusicPlaybackService musicPlaybackService;
@@ -41,8 +45,13 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void songPicked(View view) {
-        musicPlaybackService.setCurrentSongIndex(Integer.parseInt(view.getTag().toString()));
+        int pickedSongId = Integer.parseInt(view.getTag().toString());
+        musicPlaybackService.setCurrentSongIndex(pickedSongId);
         musicPlaybackService.playSong();
+        Intent intent = new Intent(this, MusicPlayerActivity.class);
+        intent.putExtra(EXTRA_SONG,songList.get(pickedSongId));
+        //intent.putExtra(EXTRA_MUSIC_PLAYBACK_SERVICE,musicPlaybackService);
+        startActivity(intent);
     }
 
     /**

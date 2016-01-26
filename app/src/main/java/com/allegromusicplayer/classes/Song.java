@@ -1,23 +1,19 @@
 package com.allegromusicplayer.classes;
 
 import android.content.ContentUris;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
-import java.io.FileDescriptor;
+import java.io.Serializable;
 
 /**
  * Created by Mohit Deshpande on 11/22/15.
  */
-public class Song {
+public class Song implements Serializable {
     private long id;
     private String title;
     private String artist;
     private String album;
-    //private Bitmap albumArt;
     private long albumID;
     private String path;
 
@@ -31,10 +27,6 @@ public class Song {
                 ", albumID=" + albumID +
                 ", path=" + path +
                 '}';
-    }
-
-    public long getAlbumID() {
-        return albumID;
     }
 
     public Song(long id, String title, String artist, String album, long albumID, String path) {
@@ -62,7 +54,30 @@ public class Song {
         return album;
     }
 
+    public long getAlbumID() {
+        return albumID;
+    }
+
     public String getPath() {
         return path;
+    }
+
+    /**
+     * Gets album art work URI for the given album id
+     * @return A Uri of the album artwork bitmap
+     */
+    public Uri getAlbumArtUri() {
+        Uri uri = null;
+        try {
+            final Uri sArtworkUri = Uri
+                    .parse("content://media/external/audio/albumart");
+
+            uri = ContentUris.withAppendedId(sArtworkUri, albumID);
+
+
+        } catch (Exception e) {
+            Log.e("AMP stackTrace", e.toString());
+        }
+        return uri;
     }
 }
