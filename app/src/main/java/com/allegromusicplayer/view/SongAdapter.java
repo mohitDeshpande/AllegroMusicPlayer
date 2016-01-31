@@ -29,7 +29,7 @@ import java.util.List;
  * use an Adapter to map the songs to the list view.
  * pass the song list from the main Activity class and use the LayoutInflater to map
  * the title and artist strings to the TextViews in the song layout(song_list_item).
- *
+ * <p/>
  * Created by Mohit on 11/22/15.
  */
 public class SongAdapter extends BaseAdapter {
@@ -81,7 +81,7 @@ public class SongAdapter extends BaseAdapter {
         titleTextView.setText(title);
         artistTextView.setText(artist);
         String albumArtUri = currentSong.getAlbumArtUri().toString();
-        if(albumArtUri != null) {
+        if (albumArtUri != null) {
             imageLoader.displayImage(albumArtUri, albumArtView);
         }
 
@@ -93,6 +93,7 @@ public class SongAdapter extends BaseAdapter {
 
     /**
      * Gets album art work given the album id
+     *
      * @param album_id The id of the Album whose artwork to find
      * @return A Bitmap of that Album Art
      */

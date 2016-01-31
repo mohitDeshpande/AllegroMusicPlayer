@@ -36,5 +36,44 @@
         android:layout_centerHorizontal="true"
         android:textAlignment="center" />
 
+    <SeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/song_seek_bar"
+        android:layout_below="@+id/song_artist"
+        android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/playButton"
+        android:layout_below="@+id/song_seek_bar"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_play_arrow_24dp"
+        android:background="@android:color/transparent"
+        android:onClick="playToggle" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/skipNextButton"
+        android:layout_below="@+id/song_seek_bar"
+        android:layout_toEndOf="@+id/playButton"
+        android:layout_marginStart="24dp"
+        android:src="@drawable/ic_skip_next_24dp"
+        android:background="@android:color/transparent"
+        android:onClick="skipNext" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/skipPrevButton"
+        android:layout_below="@+id/song_seek_bar"
+        android:layout_toStartOf="@+id/playButton"
+        android:layout_marginEnd="24dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_skip_previous_24dp"
+        android:onClick="skipPrev" />
+
 
 </RelativeLayout>

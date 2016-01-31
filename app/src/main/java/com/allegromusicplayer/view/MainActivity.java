@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -32,7 +33,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static final String EXTRA_SONG = "com.allegromusicplayer.classes.Song";
-    public static final String EXTRA_MUSIC_PLAYBACK_SERVICE = "com.allegromusicplayer.service.MusicPlaybackService";
 
     private List<Song> songList;
     private ListView songListView;
@@ -41,16 +41,13 @@ public class MainActivity extends AppCompatActivity {
     private boolean isMusicPlaybackServiceBound = false;
 
     /**
-     *
      * @param view
      */
     public void songPicked(View view) {
         int pickedSongId = Integer.parseInt(view.getTag().toString());
         musicPlaybackService.setCurrentSongIndex(pickedSongId);
-        musicPlaybackService.playSong();
+        musicPlaybackService.setAndPlaySong();
         Intent intent = new Intent(this, MusicPlayerActivity.class);
-        intent.putExtra(EXTRA_SONG,songList.get(pickedSongId));
-        //intent.putExtra(EXTRA_MUSIC_PLAYBACK_SERVICE,musicPlaybackService);
         startActivity(intent);
     }
 
@@ -60,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection musicPlaybackServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            MusicPlaybackService.MusicPlaybackServiceBinder binder = (MusicPlaybackService.MusicPlaybackServiceBinder)service;
+            MusicPlaybackService.MusicPlaybackServiceBinder binder = (MusicPlaybackService.MusicPlaybackServiceBinder) service;
             musicPlaybackService = binder.getService();
             musicPlaybackService.setSongList(songList);
             isMusicPlaybackServiceBound = true;
@@ -72,6 +69,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(musicPlaybackServiceConnection);
+    }
+
     /**
      * Dispatch onStart() to all fragments.  Ensure any created loaders are
      * now started.
@@ -80,11 +83,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        if (playMusicIntent == null) {
-            playMusicIntent = new Intent(this,MusicPlaybackService.class);
+        //if (playMusicIntent == null) {
+            playMusicIntent = new Intent(this, MusicPlaybackService.class);
             bindService(playMusicIntent, musicPlaybackServiceConnection, Context.BIND_AUTO_CREATE);
-            startService(playMusicIntent);
-        }
+
+        //}
+
+        Log.e("MainActivity", "onStart()");
     }
 
     @Override
@@ -119,9 +124,11 @@ public class MainActivity extends AppCompatActivity {
         songListView.setOnScrollListener(listener);
 
         // set the adapter for the list view to populate the items in it
-        SongAdapter songAdapter = new SongAdapter(songList,this);
+        SongAdapter songAdapter = new SongAdapter(songList, this);
         songListView.setAdapter(songAdapter);
 
+
+        Log.e("MainActivity", "onCreate()");
     }
 
     /**
@@ -136,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         String selectOnlyMusic = MediaStore.Audio.Media.IS_MUSIC + " != 0";
 
         //Cursor[] musicCursorArray = new Cursor[2];
-        Cursor musicCursor = musicResolver.query(externalMusicUri,null,selectOnlyMusic,null,null);
+        Cursor musicCursor = musicResolver.query(externalMusicUri, null, selectOnlyMusic, null, null);
         //musicCursorArray[1] = musicResolver.query(internalMusicUri,null,selectOnlyMusic,null,null);
 
 
@@ -145,31 +152,31 @@ public class MainActivity extends AppCompatActivity {
         // iterate over the results in the Cursor
         if (musicCursor != null && musicCursor.moveToFirst()) {
 
-                // get the columns indexes of the media in the cursor
-                int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
-                int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-                int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-                int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
-                int albumIDColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
-                int dataColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+            // get the columns indexes of the media in the cursor
+            int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+            int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+            int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
+            int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
+            int albumIDColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
+            int dataColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
 
 
-                // add songs to the songList
-                do {
+            // add songs to the songList
+            do {
 
-                    long id = musicCursor.getLong(idColumn);
-                    String title = musicCursor.getString(titleColumn);
-                    String album = musicCursor.getString(albumColumn);
-                    String artist = musicCursor.getString(artistColumn);
-                    long albumID = musicCursor.getLong(albumIDColumn);
-                    String data = musicCursor.getString(dataColumn);
+                long id = musicCursor.getLong(idColumn);
+                String title = musicCursor.getString(titleColumn);
+                String album = musicCursor.getString(albumColumn);
+                String artist = musicCursor.getString(artistColumn);
+                long albumID = musicCursor.getLong(albumIDColumn);
+                String data = musicCursor.getString(dataColumn);
 
-                    if (data != null){
-                        songList.add(new Song(id,title,artist,album,albumID, data));
-                    }
+                if (data != null) {
+                    songList.add(new Song(id, title, artist, album, albumID, data));
+                }
 
 
-                }while (musicCursor.moveToNext());
+            } while (musicCursor.moveToNext());
             Log.i("song count", String.valueOf(songList.size()));
         }
     }

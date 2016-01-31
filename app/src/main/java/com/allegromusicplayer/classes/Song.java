@@ -64,6 +64,7 @@ public class Song implements Serializable {
 
     /**
      * Gets album art work URI for the given album id
+     *
      * @return A Uri of the album artwork bitmap
      */
     public Uri getAlbumArtUri() {
