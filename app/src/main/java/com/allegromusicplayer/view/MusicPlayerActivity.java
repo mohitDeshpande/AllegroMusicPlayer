@@ -20,15 +20,27 @@ import com.allegromusicplayer.classes.Song;
 import com.allegromusicplayer.service.MusicPlaybackService;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
 public class MusicPlayerActivity extends AppCompatActivity {
 
     private ImageLoader imageLoader;
     private MusicPlaybackService musicPlaybackService;
     private Intent playMusicIntent;
     private boolean isMusicPlaybackServiceBound = false;
-    private SeekBar songSeekBar;
     private Handler seekHandler;
     private Runnable seekBarUpdateRunnable;
+
+    // UI components in this activity
+    private SeekBar songSeekBar;
+    private TextView titleTextView;
+    private TextView artistTextView;
+    private TextView songMaxDurationTextView;
+    private TextView songCurrentDurationTextView;
+    private ImageView albumArtImageView;
+
 
 
     /**
@@ -74,13 +86,25 @@ public class MusicPlayerActivity extends AppCompatActivity {
         seekHandler = new Handler();
         seekBarUpdateRunnable = new Runnable() {
             Integer currentDuration = null;
+            Integer maxDuration = null;
+
+            SimpleDateFormat formatter = new SimpleDateFormat("mm:ss");
+            Date currentDurationDate = null;
+            Date maxDurationDate = null;
 
             @Override
             public void run() {
                 if (isMusicPlaybackServiceBound && songSeekBar != null && musicPlaybackService.isSongPlaying()) {
                     currentDuration = musicPlaybackService.getSongCurrentPosition();
-                    songSeekBar.setMax(musicPlaybackService.getSongDuration());
+                    maxDuration = musicPlaybackService.getSongDuration();
+                    songSeekBar.setMax(maxDuration);
                     songSeekBar.setProgress(currentDuration);
+                    currentDurationDate = new Date(currentDuration);
+                    maxDurationDate = new Date(maxDuration);
+                    formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    songMaxDurationTextView.setText(formatter.format(maxDurationDate));
+                    songCurrentDurationTextView.setText(formatter.format(currentDurationDate));
+                    Log.e("Date", currentDurationDate.toString());
                 }
                 seekHandler.postDelayed(this,1000);
             }
@@ -113,10 +137,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
         Song song = musicPlaybackService.getCurrentPlayingSong();
 
         // get items from the view
-        TextView titleTextView = (TextView) musicPlayerLayout.findViewById(R.id.song_title);
-        TextView artistTextView = (TextView) musicPlayerLayout.findViewById(R.id.song_artist);
-        ImageView albumArtImageView = (ImageView) musicPlayerLayout.findViewById(R.id.album_art);
+        titleTextView = (TextView) musicPlayerLayout.findViewById(R.id.song_title);
+        artistTextView = (TextView) musicPlayerLayout.findViewById(R.id.song_artist);
+        albumArtImageView = (ImageView) musicPlayerLayout.findViewById(R.id.album_art);
         songSeekBar = (SeekBar) musicPlayerLayout.findViewById(R.id.song_seek_bar);
+        songCurrentDurationTextView = (TextView) musicPlayerLayout.findViewById(R.id.song_current_duration);
+        songMaxDurationTextView = (TextView) musicPlayerLayout.findViewById(R.id.song_total_duration);
 
         if (imageLoader == null) {
             imageLoader = ImageLoader.getInstance();
@@ -129,8 +155,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
         songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    if (musicPlaybackService != null && isMusicPlaybackServiceBound) {
+                if (musicPlaybackService != null && isMusicPlaybackServiceBound) {
+                    if (fromUser) {
                         musicPlaybackService.seek(progress);
                     }
                 }
