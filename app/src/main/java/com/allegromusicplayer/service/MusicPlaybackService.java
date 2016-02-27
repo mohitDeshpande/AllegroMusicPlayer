@@ -212,16 +212,10 @@ public class MusicPlaybackService extends Service implements MediaPlayer.OnPrepa
     /**
      * Get the duration of the currently playing song
      *
-     * @return The song duration in seconds. If duration is not available then -1 is returned
+     * @return The song duration in milliseconds. If duration is not available then -1 is returned
      */
     public int getSongDuration() {
-        int duration = player.getDuration();
-
-        if (duration >= 0) {
-            duration *= 1000;
-        }
-
-        return duration;
+        return player.getDuration();
     }
 
     /**

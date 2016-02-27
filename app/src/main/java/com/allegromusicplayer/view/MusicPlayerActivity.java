@@ -22,14 +22,13 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class MusicPlayerActivity extends AppCompatActivity {
 
-    private Intent intent;
     private ImageLoader imageLoader;
     private MusicPlaybackService musicPlaybackService;
     private Intent playMusicIntent;
     private boolean isMusicPlaybackServiceBound = false;
-    SeekBar songSeekBar;
-    Handler seekHandler;
-    Runnable seekBarUpdateRunnable;
+    private SeekBar songSeekBar;
+    private Handler seekHandler;
+    private Runnable seekBarUpdateRunnable;
 
 
     /**
@@ -62,33 +61,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             playMusicIntent = new Intent(this, MusicPlaybackService.class);
             bindService(playMusicIntent, musicPlaybackServiceConnection, Context.BIND_AUTO_CREATE);
         }
-
-        seekHandler = new Handler();
-//        seekBarUpdateRunnable = new Runnable() {
-//            @Override
-//            public void run() {
-//                updateSeekBar();
-//                Log.e("RUN", "in run");
-//            }
-//        };
-
-        MusicPlayerActivity.this.runOnUiThread(new Runnable() {
-            int i = 0;
-
-            @Override
-            public void run() {
-                if (songSeekBar != null) {
-                    songSeekBar.setMax(100);
-                    songSeekBar.setProgress(i++);
-                    seekHandler.postDelayed(this, 1000);
-                    Log.e("UI Thread", "in run");
-                }
-            }
-        });
-
-        Log.e("MusicPlayerActivity", "onCreate()");
-
-//        Log.i("Service exists?", musicPlaybackService.getSongList().toString());
     }
 
     /**
@@ -99,6 +71,21 @@ public class MusicPlayerActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        seekHandler = new Handler();
+        seekBarUpdateRunnable = new Runnable() {
+            Integer currentDuration = null;
+
+            @Override
+            public void run() {
+                if (isMusicPlaybackServiceBound && songSeekBar != null && musicPlaybackService.isSongPlaying()) {
+                    currentDuration = musicPlaybackService.getSongCurrentPosition();
+                    songSeekBar.setMax(musicPlaybackService.getSongDuration());
+                    songSeekBar.setProgress(currentDuration);
+                }
+                seekHandler.postDelayed(this,1000);
+            }
+        };
+        seekBarUpdateRunnable.run();
 
         Log.e("MusicPlayerActivity", "onStart()");
     }
@@ -138,6 +125,27 @@ public class MusicPlayerActivity extends AppCompatActivity {
         titleTextView.setText(song.getTitle());
         artistTextView.setText(song.getArtist());
         imageLoader.displayImage(song.getAlbumArtUri().toString(), albumArtImageView);
+        songSeekBar.setProgress(0);
+        songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    if (musicPlaybackService != null && isMusicPlaybackServiceBound) {
+                        musicPlaybackService.seek(progress);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                musicPlaybackService.pause();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                musicPlaybackService.play();
+            }
+        });
 
     }
 
@@ -175,56 +183,4 @@ public class MusicPlayerActivity extends AppCompatActivity {
         super.onDestroy();
         unbindService(musicPlaybackServiceConnection);
     }
-
-
-//    public void updateSeekBar() {
-//        if (isMusicPlaybackServiceBound && musicPlaybackService != null && musicPlaybackService.isSongPlaying()) {
-//            if(songSeekBar.getMax() != musicPlaybackService.getSongDuration()) {
-//                songSeekBar.setMax(musicPlaybackService.getSongDuration());
-//            }
-//            songSeekBar.setProgress(musicPlaybackService.getSongCurrentPosition());
-//            seekHandler.postDelayed(seekBarUpdateRunnable, 1000);
-//        }
-//    }
-
-
-    /**
-     * Sets the seekbar listener according to the song
-     * @param seekBar The seekbar to implement
-     */
-//    public void setSongSeekBar(final SeekBar seekBar) {
-//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                if (fromUser) {
-//                    if (musicPlaybackService != null && isMusicPlaybackServiceBound) {
-//                        musicPlaybackService.seek(progress);
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar) {
-//
-//            }
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//
-//            }
-//        });
-//
-//        if(musicPlaybackService != null && isMusicPlaybackServiceBound) {
-//            seekBar.setMax(musicPlaybackService.getSongDuration());
-//            final Handler handler = new Handler();
-//            runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    seekBar.setProgress(musicPlaybackService.getSongCurrentPosition());
-//                    handler.postDelayed(this,500);
-//                }
-//            });
-//        }
-//    }
-
 }
