@@ -2,6 +2,7 @@ package com.allegromusicplayer.view;
 
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -35,8 +36,11 @@ import java.util.List;
 public class SongAdapter extends BaseAdapter {
     private List<Song> songList;
     private LayoutInflater songInflater;
-    Context context;
-    ImageLoader imageLoader;
+    private Context context;
+    private ImageLoader imageLoader;
+    private TextView titleTextView;
+    private TextView artistTextView;
+    private ImageView albumArtView;
 
     public SongAdapter(List<Song> songList, Context context) {
         this.songList = songList;
@@ -66,9 +70,9 @@ public class SongAdapter extends BaseAdapter {
         RelativeLayout songListItemLayout = (RelativeLayout) songInflater.inflate(R.layout.song_list_item, viewGroup, false);
 
         // get title and artist and album art views
-        TextView titleTextView = (TextView) songListItemLayout.findViewById(R.id.song_title);
-        TextView artistTextView = (TextView) songListItemLayout.findViewById(R.id.song_artist);
-        ImageView albumArtView = (ImageView) songListItemLayout.findViewById(R.id.album_art);
+        titleTextView = (TextView) songListItemLayout.findViewById(R.id.song_title);
+        artistTextView = (TextView) songListItemLayout.findViewById(R.id.song_artist);
+        albumArtView = (ImageView) songListItemLayout.findViewById(R.id.album_art);
 
         // get song using position
         Song currentSong = songList.get(i);
@@ -90,6 +94,8 @@ public class SongAdapter extends BaseAdapter {
 
         return songListItemLayout;
     }
+
+
 
     /**
      * Gets album art work given the album id
@@ -115,5 +121,13 @@ public class SongAdapter extends BaseAdapter {
             Log.e("AMP stackTrace", e.toString());
         }
         return bm;
+    }
+
+    public ImageView getAlbumArtView() {
+        return albumArtView;
+    }
+
+    public void setAlbumArtView(ImageView albumArtView) {
+        this.albumArtView = albumArtView;
     }
 }

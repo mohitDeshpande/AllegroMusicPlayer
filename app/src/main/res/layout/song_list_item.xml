@@ -15,7 +15,8 @@
         android:id="@+id/album_art"
         android:contentDescription="@string/album_art"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:transitionName="@string/transition_album_cover" />
 
 
     <TextView
